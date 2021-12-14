@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+<meta charset="utf-8"/>
+<meta content="IE=edge" http-equiv="X-UA-Compatible"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta content="Fenswood Scenario Simulation" name="description"/>
+<link href="img/favicon.ico" rel="shortcut icon"/>
+<title>Fenswood Scenario</title>
+<link href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" rel="stylesheet">
+<link href="css/theme.css" rel="stylesheet"/>
+<link href="css/theme_extra.css" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" rel="stylesheet"/>
+<link href="kbd.css" rel="stylesheet"/>
+<script>
+    // Current page data
+    var mkdocs_page_name = "Fenswood FARM";
+    var mkdocs_page_input_path = "README.md";
+    var mkdocs_page_url = null;
+  </script>
+<script defer="" src="js/jquery-2.1.1.min.js"></script>
+<script defer="" src="js/modernizr-2.8.3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+</link></head>
+<body class="wy-body-for-nav" role="document">
+<div class="wy-grid-for-nav">
+<nav class="wy-nav-side stickynav" data-toggle="wy-nav-shift">
+<div class="wy-side-scroll">
+<div class="wy-side-nav-search">
+<a class="icon icon-home" href="."> Fenswood Scenario</a>
+<div role="search">
+<form action="./search.html" class="wy-form" id="rtd-search-form" method="get">
+<input name="q" placeholder="Search docs" title="Type search term here" type="text"/>
+</form>
+</div>
+</div>
+<div aria-label="main navigation" class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation">
+<p class="caption"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/fenswood_scenario/">Introduction to Starling with the Fenswood Scenario</a>
+</li>
+</ul>
+</div>
+</div>
+</nav>
+<section class="wy-nav-content-wrap" data-toggle="wy-nav-shift">
+<nav aria-label="top navigation" class="wy-nav-top" role="navigation">
+<i class="fa fa-bars" data-toggle="wy-nav-top"></i>
+<a href=".">Fenswood Scenario</a>
+</nav>
+<div class="wy-nav-content">
+<div class="rst-content">
+<div aria-label="breadcrumbs navigation" role="navigation">
+<ul class="wy-breadcrumbs">
+<li><a href=".">Docs</a> »</li>
+<li>Fenswood FARM</li>
+<li class="wy-breadcrumbs-aside">
+<a class="icon icon-github" href="https://github.com/StarlingUAS/FenswoodScenario/edit/master/docs/README.md"> Edit on GitHub</a>
+</li>
+</ul>
+<hr/>
+</div>
+<div role="main">
+<div class="section">
+<h1 id="fenswood-farm">Fenswood FARM<a class="headerlink" href="#fenswood-farm" title="Permanent link">¶</a></h1>
+<p>This repository contains a small set of files that set up an ArduCopter vehicle in a representation of the Fenswood
+FARM. It leverages a number of images from Project Starling which holds the underlying framework.</p>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">¶</a></h2>
+<p>First, ensure all the required images are downloaded and up-to-date:</p>
+<pre><code class="language-sh">docker-compose -f docker-compose.linux.yml pull
+# or on windows:
+docker-compose -f docker-compose.windows.yml pull
+</code></pre>
+<p>Then launch the scenario with:</p>
+<pre><code class="language-sh">docker-compose -f docker-compose.linux.yml up
+# or on windows:
+docker-compose -f docker-compose.windows.yml up
+</code></pre>
+<p>The Gazebo web interface is then available on <a href="http://localhost:8080">localhost:8080</a>.</p>
+<p>On Linux, any MAVLink compatible GCS can be connected to UDP 14550. Many GCS will do this automatically.</p>
+<p>On Windows, any MAVLink compatible GCS can be connected to TCP 5761.</p>
+<h3 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">¶</a></h3>
+<p>The simulator needs to download some model files when it is first run so it will likely fail to spawn the vehicle.
+Leave it running for a few minutes then use <code>Ctrl+C</code> to exit and run it again. This should allow the model to spawn.
+The first time the model attempts to spawn, the simulator will need to download files for it too so it may be slow to
+start. Subsequent runs should be much faster.</p>
+<h2 id="windows-and-linux">Windows and Linux<a class="headerlink" href="#windows-and-linux" title="Permanent link">¶</a></h2>
+<p>Each example file has a <em>linux</em> and <em>windows</em> variant. </p>
+<ul>
+<li>The <em>linux</em> variant allows you to run bare-metal application such as rviz2 or your own controllers natively. You do not need to wrap your own controllers in a docker container. Any exposed ports are automatically exposed to <code>localhost</code>. </li>
+<li>The <em>windows</em> variant runs inside a docker-compose network named <code>fenswoodscenario_default</code>. This network is segregated from your local network traffic <em>except</em> for the exposed ports in the docker-compose file which are now accessible from <code>localhost</code>. Any other ROS2 nodes will need to be wrapped in a docker container for running and run with <code>--network fenswoodscenario_default</code>. </li>
+</ul>
+<h2 id="developing-your-own-ros2-controller">Developing your own ROS2 controller<a class="headerlink" href="#developing-your-own-ros2-controller" title="Permanent link">¶</a></h2>
+<p>An example offboard ROS2 controller can then be conncted to SITL by running the following in a separate terminal:</p>
+<pre><code># Download the latest container
+docker pull uobflightlabstarling/example_controller_python 
+
+docker run -it --rm --network fenswoodscenario_default uobflightlabstarling/example_controller_python
+</code></pre>
+<p>See <a href="https://docs.starlinguas.dev/guide/single-drone-local-machine/#2-running-example-ros2-offboard-controller-node">the docs</a> for further details</p>
+<h2 id="details">Details<a class="headerlink" href="#details" title="Permanent link">¶</a></h2>
+<p>Target spawning is achieved via the <code>spawn_target.py</code> script. It spawns a specified number or yellow target rectangles and red hotspot circles around the 'annulus' of a volcano. See the script for more details. </p>
+</div>
+</div>
+<footer>
+<hr/>
+<div role="contentinfo">
+<!-- Copyright etc -->
+<p>Copyright © 2021 University of Bristol Flight Laboratory</p>
+</div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+</div>
+</div>
+</section>
+</div>
+<div aria-label="versions" class="rst-versions" role="note">
+<span class="rst-current-version" data-toggle="rst-current-version">
+<span>
+<a class="fa fa-github" href="https://github.com/StarlingUAS/FenswoodScenario/" style="color: #fcfcfc"> GitHub</a>
+</span>
+</span>
+</div>
+<script>var base_url = '.';</script>
+<script defer="" src="js/theme_extra.js"></script>
+<script defer="" src="js/theme.js"></script>
+<script defer="" src="search/main.js"></script>
+<script defer="">
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+</body>
+</html>
+<!--
+MkDocs version : 1.2.3
+Build Date UTC : 2021-12-14 12:20:10.577741+00:00
+-->
