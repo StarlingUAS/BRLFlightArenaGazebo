@@ -1,7 +1,7 @@
-site_name: Fenswood Scenario
+site_name: Flight Arena
 theme: readthedocs
 repo_url: https://github.com/StarlingUAS/FenswoodScenario
-site_description: 'Fenswood Scenario Simulation'
+site_description: 'Flight Arena Gazebo Simulation'
 docs_dir: 'docs'
 copyright: Copyright &copy; 2021 University of Bristol Flight Laboratory
 

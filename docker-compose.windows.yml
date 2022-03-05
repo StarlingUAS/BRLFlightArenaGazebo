@@ -6,8 +6,8 @@ services:
     # environment:
     #   - AP_SITL_HOST=sitl
     volumes:
-      - ./fenswood:/ros.env.d/fenswood
-    command: ["ros2", "launch", "/ros.env.d/fenswood/iris.launch.xml"]
+      - ./flightarena:/ros.env.d/flightarena
+    command: ["ros2", "launch", "/ros.env.d/flightarena/iris.launch.xml"]
     ports:
       - "8080:8080"
 

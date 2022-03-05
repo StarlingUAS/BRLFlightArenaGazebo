@@ -5,8 +5,8 @@ services:
     network_mode: host
     image: uobflightlabstarling/starling-sim-iris-ap:latest
     volumes:
-      - ./fenswood:/ros.env.d/fenswood
-    command: ["ros2", "launch", "/ros.env.d/fenswood/iris.launch.xml"]
+      - ./flightarena:/ros.env.d/flightarena
+    command: ["ros2", "launch", "/ros.env.d/flightarena/iris.launch.xml"]
 
   sitl:
     network_mode: host
@@ -14,7 +14,7 @@ services:
     environment:
       - AP_USE_GAZEBO=true
       - AP_HOME=51.4233628,-2.671671,100.0,0
-  
+
   mavros:
     network_mode: host
     image: uobflightlabstarling/starling-mavros:latest
@@ -30,7 +30,7 @@ services:
     image: uobflightlabstarling/rosbridge-suite:latest
     network_mode: host
 
-  # Uncomment for the UI Example 
+  # Uncomment for the UI Example
   ui-example:
     image: uobflightlabstarling/starling-ui-example
     network_mode: host

@@ -1,6 +1,6 @@
-SRC_PATH=/ros.env.d/fenswood
+SRC_PATH=/ros.env.d/flightarena
 
-# Add fenswood.world to the Gazebo resource path
+# Add flightarena.world to the Gazebo resource path
 export GAZEBO_RESOURCE_PATH=$SRC_PATH/worlds:${GAZEBO_RESOURCE_PATH}
 echo "RESOURCE_PATH: $GAZEBO_RESOURCE_PATH"
 

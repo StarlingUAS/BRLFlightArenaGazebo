@@ -6,6 +6,6 @@ WORKDIR /ros.env.d
 
 RUN mkdir fenswood
 
-COPY fenswood fenswood
+COPY flightarena flightarena
 
-CMD ["ros2", "launch", "/ros.env.d/fenswood/iris.launch.xml"]
+CMD ["ros2", "launch", "/ros.env.d/flightarena/iris.launch.xml"]
