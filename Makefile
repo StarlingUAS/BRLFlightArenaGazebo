@@ -3,7 +3,7 @@ BAKE_SCRIPT:=$(MAKEFILE_DIR)/docker-bake.hcl
 BUILDX_HOST_PLATFORM:=$(shell docker buildx inspect default | sed -nE 's/^Platforms: ([^,]*),.*$$/\1/p')
 BAKE:=docker buildx bake --builder default --load --set *.platform=$(BUILDX_HOST_PLATFORM) -f $(BAKE_SCRIPT)
 
-CONTAINERNAME?=starling-sim-iris-ap-flightarena
+CONTAINERNAME?=starling-sim-iris-px4-flightarena
 NETWORK?=host
 ENV?=
 
