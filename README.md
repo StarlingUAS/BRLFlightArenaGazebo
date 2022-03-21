@@ -4,6 +4,29 @@ This repository contains a simple gazebo model of the flight arena within a dock
 
 ![flightarena](flightarena.png)
 
+## Shape
+
+Flight arena is 15.6m x 11.8m x 5m (x, y, z) tall.
+
+```
+_________________________________
+|                                |
+|                                |
+|                                |
+|_                              L|
+|C|
+|  |                             |
+|__|____________                 |
+|___|_V_|___|___|                |
+|                     _____ _____|
+|_    _____    ______|__E__|_____|
+```
+
+
+The coordinate space is x positive is up and y postivie is left (w.r.t the ascii figure).
+
+The flight arena origin is offset by (0.5, 0.7, 0.0) from the center of the space. This coincides with the vicon center
+
 ## Usage
 
 First, ensure all the required images are downloaded and up-to-date:
