@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  simhost:
+    image: uobflightlabstarling/starling-sim-iris-px4-flightarena:${STARLING_RELEASE:-latest}
+    ports:
+      - "8080:8080"
+
+  simhost_spawn:
+    image: uobflightlabstarling/starling-sim-iris:${STARLING_RELEASE:-latest}
+    command: [./spawn_iris.sh]
+    environment:
+      - "PX4_SIM_HOST=simhost"
+      - "PX4_INSTANCE=0"
+      - "IGNORE_FAILURE=true"
+    depends_on:
+      - simhost
+
+  sitl:
+    image: uobflightlabstarling/starling-sim-ardupilot-copter:${STARLING_RELEASE:-latest}
+    environment:
+      - AP_USE_GAZEBO=true
+      - AP_HOME=51.4233628,-2.671671,100.0,0
+      - AP_SIM_HOST=simhost
+
+  mavros:
+    image: uobflightlabstarling/starling-mavros:${STARLING_RELEASE:-latest}
+    command: ros2 launch launch/mavros_bridge.launch.xml
+    environment:
+      - "MAVROS_TGT_FIRMWARE=apm"
+      - "MAVROS_TGT_SYSTEM=1"
+      - "MAVROS_FCU_URL=tcp://sitl:5760"
+      - "MAVROS_GCS_URL=tcp-l://:5761"
+      - "MAVROS_CONFIG_PATH=/mavros_config_ap.yaml"
+      - "MAVROS_PLUGINLISTS_PATH=/mavros_pluginlists_ap.yaml"
+    ports:
+      - "5761:5761"
+
+  rosbridge-suite:
+    image: uobflightlabstarling/rosbridge-suite:${STARLING_RELEASE:-latest}
+    ports:
+      - "9090:9090"
+
+  # Uncomment for the UI Example
+  ui-example:
+    image: uobflightlabstarling/starling-ui-example
+    ports:
+      - "3000:3000"

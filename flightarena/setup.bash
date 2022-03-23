@@ -1,4 +1,4 @@
-SRC_PATH=/ros.env.d/flightarena
+SRC_PATH="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Add flightarena.world to the Gazebo resource path
 export GAZEBO_RESOURCE_PATH=$SRC_PATH/worlds:${GAZEBO_RESOURCE_PATH}

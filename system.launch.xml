@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="spawn_only" default="false"/>
+    <arg name="sim_only" default="false"/>
+
+    <include unless="$(var spawn_only)" file="/ros_ws/launch/gzweb.launch.xml" >
+        <arg name="world" value="flightarena.world" />
+    </include>
+
+    <node unless="$(var sim_only)"
+          pkg="gazebo_ros"
+          exec="spawn_entity.py"
+          args="-entity gimbal_1
+                -database gimbal_tripod
+                -spawn_service_timeout 30.0
+                -x $(env PX4_SIM_INIT_LOC_X)
+                -y $(env PX4_SIM_INIT_LOC_Y)
+                -z $(env PX4_SIM_INIT_LOC_Z)"
+    />
+
+</launch>

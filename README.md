@@ -29,20 +29,11 @@ The flight arena origin is offset by (0.5, 0.7, 0.0) from the center of the spac
 
 ## Usage
 
-First, ensure all the required images are downloaded and up-to-date:
-
+Build and run the associated world and element into a container by running the following
 ```sh
-docker-compose -f docker-compose.linux.yml pull
-# or on windows:
-docker-compose -f docker-compose.windows.yml pull
-```
+make run
 
-Then launch the scenario with:
-
-```sh
-docker-compose -f docker-compose.linux.yml up
-# or on windows:
-docker-compose -f docker-compose.windows.yml up
+# just running `make` will build but not run it
 ```
 
 The Gazebo web interface is then available on [localhost:8080](http://localhost:8080).
@@ -51,6 +42,21 @@ On Linux, any MAVLink compatible GCS can be connected to UDP 14550. Many GCS wil
 
 On Windows, any MAVLink compatible GCS can be connected to TCP 5761.
 
+If you wish to run with additional drone, then you can use the associated docker-compose file
+
+```sh
+make
+docker-compose up
+```
+
+The docker-compose file also includes the UI which you can run to double check the image output of the gimbal. Accessible via `localhost:3000`
+
+To check the ROS network, you can either `docker exec -it <containerhash> bash` into the container, or you can run `make run_bash` which will put you in a shell on the same network. Then to access the ros2 topics:
+```
+source /opt/ros/foxy/setup.bash
+ros2 topic list
+```
+
 ### Troubleshooting
 
 The simulator needs to download some model files when it is first run so it will likely fail to spawn the vehicle.
@@ -58,12 +64,25 @@ Leave it running for a few minutes then use `Ctrl+C` to exit and run it again. T
 The first time the model attempts to spawn, the simulator will need to download files for it too so it may be slow to
 start. Subsequent runs should be much faster.
 
-## Windows and Linux
+When running the docker-compose, it will create a docker network called `BRLFightlArenaGazebo_default` which any additional calls to `docker run` can use.
 
-Each example file has a *linux* and *windows* variant.
+## Files
 
-- The *linux* variant allows you to run bare-metal application such as rviz2 or your own controllers natively. You do not need to wrap your own controllers in a docker container. Any exposed ports are automatically exposed to `localhost`.
-- The *windows* variant runs inside a docker-compose network named `fenswoodscenario_default`. This network is segregated from your local network traffic *except* for the exposed ports in the docker-compose file which are now accessible from `localhost`. Any other ROS2 nodes will need to be wrapped in a docker container for running and run with `--network fenswoodscenario_default`.
+### Flight Arena world file and models
+
+The BRL world file is in the `flightarena` folder. The elements within the flight arena are all hard coded boxes.
+
+> Note: need to find a way to apply texture
+
+### 3D Gimbal on tripod
+
+The gimbal is split into 3 parts.
+
+1. The gimbal model which is located in `systems/models/gimbal_small_2d`
+2. The gimbal plugin i.e. the gimbal controller in `systems/gimbal_plugin`
+3. The gimbal tripod with camera which is located in `systems/models/gimbal_tripod`
+
+Any changes made to any folder can be rebuilt when run `make`
 
 ## Developing your own ROS2 controller
 
