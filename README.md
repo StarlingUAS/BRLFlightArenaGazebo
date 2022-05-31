@@ -27,7 +27,25 @@ The coordinate space is x positive is up and y postivie is left (w.r.t the ascii
 
 The flight arena origin is offset by (0.5, 0.7, 0.0) from the center of the space. This coincides with the vicon center
 
+## Features
+
+### Static Gimbal Model
+
+By default, the container will load up a controllable static gimbal.
+
+### Vision Position Tracking
+
+The `motion_tracker_sim` ros node has been developed to mimic the VICON motion tracking system we have at the arena. It reads the gazebo local entity positions through the `model_states` topic.
+
+It first filters entity names by the `MOTION_TRACKER_ENTITY_PREFIX_LIST` environment variable which is a space seperated list of entity prefix names. By default this is set to `"iris gimbal rover"`. It is assumed that wanted entity names have a name of format `<prefix>_<id>` where the `id` is unique across all vehicles.
+
+It then queries for the current list of topics to find the current list of active vehicles. It looks for namespaces which have a mavros subnamespace. Namespaces are assumed to be of form `<ANYTHING>_<id>`. Again the `id` is assumed unique. An entity id matches a vehicle id if the id's are the same. The entity's pose is then forwarded over `/<vehicle_id>/mavros/vision_pose/pose` by default.
+
+Note that the simulator SITL sensor fuser needs to be able to process inputs from external vision on this topic. For PX4 this involves setting `EKF2_HGT_MODE` to 3 and `EKF2_AID_MASK` to 24 (EV_POS+EV_YAW). As of writing this can be achieved by setting the `ENABLE_EXTERNAL_VISION` env var for the `px4-sitl` container.
+
 ## Usage
+
+### Local Docker
 
 Build and run the associated world and element into a container by running the following
 ```sh
@@ -56,6 +74,32 @@ To check the ROS network, you can either `docker exec -it <containerhash> bash` 
 source /opt/ros/foxy/setup.bash
 ros2 topic list
 ```
+
+### Running with Murmuration
+
+This container can be easily run with the Murmuration `starling` cli.
+
+First build and run the associated world and element into a container by locally running
+```sh
+make
+```
+
+Then start the starling instance as usual, e.g.
+```sh
+starling start kind # one drone
+# or
+starling start kind -n 2 # two drones
+```
+
+Then startup and load all of the simulation files. You can specify the simulator and sitl launch files, and load them in locally.
+```sh
+starling simulator start --simulator_kube_deployment_yaml k8.gazebo-brl.yaml --sitl_kube_deployment_yaml k8.px4-sitl.yaml --load
+```
+
+This command uses options to point to the local variants of the simulator and sitl launch files. These launch files contain the following differences:
+1. The simulator uses the container with the BRL Environment. This includes the motion tracker node.
+2. The SITL contains an option which enables vision position tracking using the motion tracker node, and disables GPS. This emulates the VICON setup at the BRL (Note you may need to build the `pr-reduce-container-size` px4-sitl container).
+
 
 ### Troubleshooting
 

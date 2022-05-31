@@ -12,3 +12,8 @@ echo "GAZEBO_MODEL_PATH: $GAZEBO_MODEL_PATH"
 cp -r /usr/share/gazebo-11/media $GZWEB_WS/http/client/assets/
 (cd /root/gzweb/http/client/assets/media/materials/textures \
     && for f in *jpg; do convert $f ${f%.*}.png; done)
+
+# Enable motion planner
+if [[ -f "/ros_ws/install/setup.bash" ]]; then
+    source "/ros_ws/install/setup.bash"
+fi

@@ -3,6 +3,7 @@
 
     <arg name="spawn_only" default="false"/>
     <arg name="sim_only" default="false"/>
+    <arg name="motion_tracking" default="true"/>
 
     <include unless="$(var spawn_only)" file="/ros_ws/launch/gzweb.launch.xml" >
         <arg name="world" value="flightarena.world" />
@@ -17,6 +18,13 @@
                 -x $(env PX4_SIM_INIT_LOC_X)
                 -y $(env PX4_SIM_INIT_LOC_Y)
                 -z $(env PX4_SIM_INIT_LOC_Z)"
+    />
+
+    <node if="$(var motion_tracking)"
+        pkg="motion_tracker_sim"
+        exec="motion_tracker"
+        output="screen"
+        respawn="true"
     />
 
 </launch>

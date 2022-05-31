@@ -17,6 +17,14 @@ RUN cd /ros_ws \
     && rm -r build \
     && echo 'export GAZEBO_PLUGIN_PATH=/ros_ws/install/gimbal_plugin/lib:${GAZEBO_PLUGIN_PATH}' >> /ros.env.d/03_gimbal_small_2d/setup.bash
 
+# Build motion tracker simulation rosnode
+COPY systems/motion_tracker_sim /ros_ws/src/motion_tracker_sim
+RUN cd /ros_ws \
+    && . /opt/ros/foxy/setup.sh \
+    && export CMAKE_PREFIX_PATH=$AMENT_PREFIX_PATH:$CMAKE_PREFIX_PATH \
+    && colcon build --packages-select motion_tracker_sim\
+    && rm -r build
+
 # Copy in the vehicle launch file
 COPY system.launch.xml /ros_ws/launch/
 

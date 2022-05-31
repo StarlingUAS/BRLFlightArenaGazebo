@@ -2,6 +2,8 @@
 <sdf version="1.4">
   <world name="flightarena">
 
+    <plugin name="gazebo_vehicle_state_plugin" filename="libgazebo_ros_state.so"/>
+
     <spherical_coordinates>
       <surface_model>EARTH_WGS84</surface_model>
       <latitude_deg>51.4233628</latitude_deg>
