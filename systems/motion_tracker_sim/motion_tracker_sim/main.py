@@ -73,7 +73,7 @@ class Monitor(Node):
             else:
                 self.get_logger().warn(f"Vehicle {vname} with id {id} has no corresponding entity: {target_entity}")
 
-        self.get_logger().info(f'entity_topic_map: {entity_topic_map}')
+        # self.get_logger().info(f'entity_topic_map: {entity_topic_map}')
         for vehicle_name, entity_name in entity_topic_map.items():
             pmsg = PoseStamped()
             pmsg.header.stamp = stamp.to_msg()
@@ -84,7 +84,7 @@ class Monitor(Node):
             pose_pub = self.create_publisher(PoseStamped, topic, 10)
             pose_pub.publish(pmsg)
 
-            self.get_logger().info(f'Pose sent from {entity_name} to {vehicle_name} on {topic}')
+            # self.get_logger().info(f'Pose sent from {entity_name} to {vehicle_name} on {topic}')
 
     def __get_current_vehicle_namespaces(self):
         topic_list = self.get_topic_names_and_types()
