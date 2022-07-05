@@ -6,7 +6,7 @@ BAKE:=docker buildx bake --builder default --load --set *.platform=$(BUILDX_HOST
 CONTAINERNAME?=starling-sim-iris-px4-flightarena
 NETWORK?=bridge
 ENV?=
-PORT?="-p 8080:8080"
+PORT?=-p 8080:8080
 
 all: flightarena
 
@@ -19,7 +19,10 @@ local-build-push:
 run: flightarena
 	docker run -it --rm --net=$(NETWORK) $(PORT) $(ENV) uobflightlabstarling/$(CONTAINERNAME):latest
 
+run_gimbal: flightarena
+	docker run -it --rm --net=$(NETWORK) $(PORT) $(ENV) -e SPAWN_GIMBAL=true uobflightlabstarling/$(CONTAINERNAME):latest
+
 run_bash: flightarena
 	docker run -it --rm --net=$(NETWORK) $(PORT) $(ENV) uobflightlabstarling/$(CONTAINERNAME):latest bash
 
-.PHONY: all flightarena local-build-push run run_bash
+.PHONY: all flightarena local-build-push run run_bash run_gimbal
