@@ -4,11 +4,13 @@
     <arg name="spawn_only" default="false"/>
     <arg name="sim_only" default="false"/>
     <arg name="motion_tracking" default="true"/>
+    <arg name="spawn_gimbal" default="$(env SPAWN_GIMBAL false)"/>
 
     <include unless="$(var spawn_only)" file="/ros_ws/launch/gzweb.launch.xml" >
         <arg name="world" value="flightarena.world" />
     </include>
 
+    <!-- Spawn a specified vehicle -->
     <node unless="$(var sim_only)"
           pkg="gazebo_ros"
           exec="spawn_entity.py"
@@ -20,6 +22,21 @@
                 -z $(env PX4_SIM_INIT_LOC_Z)"
     />
 
+    <!-- Spawn the gimbal from the local database-->
+    <group if="$(var spawn_gimbal)">
+        <node unless="$(var sim_only)"
+            pkg="gazebo_ros"
+            exec="spawn_entity.py"
+            args="-entity gimbal_100
+                    -database gimbal_tripod
+                    -spawn_service_timeout 30.0
+                    -x $(env GIMBAL_INIT_LOC_X -1.3)
+                    -y $(env GIMBAL_INIT_LOC_Y 6)
+                    -z $(env GIMBAL_INIT_LOC_Z 0)"
+        />
+    </group>
+
+    <!-- Spawn Motion Tracking -->
     <node if="$(var motion_tracking)"
         pkg="motion_tracker_sim"
         exec="motion_tracker"

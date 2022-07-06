@@ -6,6 +6,7 @@ MODEL_PATH=${SCRIPT_DIR}/models/gimbal_tripod/model.sdf
 
 xacro ${XACRO_PATH} \
     ros_namespace:=${GIMBAL_NAMESPACE} \
+    height:=${GIMBAL_HEIGHT:-1.5} \
     -o ${MODEL_PATH}
 
 echo "Written Gimbal model to ${MODEL_PATH}"

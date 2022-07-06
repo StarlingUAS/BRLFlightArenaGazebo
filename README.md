@@ -31,7 +31,11 @@ The flight arena origin is offset by (0.5, 0.7, 0.0) from the center of the spac
 
 ### Static Gimbal Model
 
-By default, the container will load up a controllable static gimbal.
+This container also contains a yaw-pitch controllable static gimbal. You can enable the gimbal by passing in an environment variable `SPAWN_GIMBAL=true`. This is done automatically using the `make run_gimbal` command. The gimbal contains a number of spawning environment variables which can be modified. 
+
+The gimbal can be controlled through a set of ros topics. The `/<gimbal name>/set_gimbal_orientation` topic accepts a `geometry_msgs/msg/Quaternion` as an orientation relative to its starting position. 
+
+The current orientation of the camera can be accessed using the `/<gimbal name>/get_gimbal_orientation` `geometry_msgs/msg/Quaternion` topic.
 
 ### Vision Position Tracking
 
@@ -50,6 +54,8 @@ Note that the simulator SITL sensor fuser needs to be able to process inputs fro
 Build and run the associated world and element into a container by running the following
 ```sh
 make run
+# or if you want the gimbal to also spawn
+make run_gimbal
 
 # just running `make` will build but not run it
 ```
@@ -60,12 +66,16 @@ On Linux, any MAVLink compatible GCS can be connected to UDP 14550. Many GCS wil
 
 On Windows, any MAVLink compatible GCS can be connected to TCP 5761.
 
-If you wish to run with additional drone, then you can use the associated docker-compose file
+If you wish to run with additional drone simulation stack (SITL, MAVROS) and GUIs, then you can use the associated docker-compose file
+
+> Note: This uses the PX4 SITL by default.
 
 ```sh
 make
 docker-compose up
 ```
+
+> Note: The gimbal is spawned by default
 
 The docker-compose file also includes the UI which you can run to double check the image output of the gimbal. Accessible via `localhost:3000`
 
@@ -98,8 +108,13 @@ starling simulator start --simulator_kube_deployment_yaml k8.gazebo-brl.yaml --s
 
 This command uses options to point to the local variants of the simulator and sitl launch files. These launch files contain the following differences:
 1. The simulator uses the container with the BRL Environment. This includes the motion tracker node.
-2. The SITL contains an option which enables vision position tracking using the motion tracker node, and disables GPS. This emulates the VICON setup at the BRL (Note you may need to build the `pr-reduce-container-size` px4-sitl container).
+2. The SITL contains an option which enables vision position tracking using the motion tracker node, and disables GPS. This emulates the VICON setup at the BRL.
 
+During development, you do not need to restart the entire cluster. If the simulator errors or breaks, you can just restart the simulator. 
+
+```sh
+starling simulator restart --simulator_kube_deployment_yaml k8.gazebo-brl.yaml --sitl_kube_deployment_yaml k8.px4-sitl.yaml --load
+```
 
 ### Troubleshooting
 
@@ -140,3 +155,18 @@ docker run -it --rm --network fenswoodscenario_default uobflightlabstarling/exam
 ```
 
 See [the docs](https://docs.starlinguas.dev/guide/single-drone-local-machine/#2-running-example-ros2-offboard-controller-node) for further details
+
+## Configuration
+
+### Gimbal Configuration
+
+There are a number of environment variabels used which can be used to control the initialisation of the gimbal:
+
+- `GIMBAL_NAMESPACE` the name of the gimbal
+- `GIMBAL_HEIGHT` the height of the spawned gimbal
+- `CAMERA_NAME` 
+- `CAMERA_HEIGHT` pixel height of camera
+- `CAMERA_WIDTH` pixel width of camera
+- `CAMERA_ROTATION` fixed rotation of the camera
+- `GIMBAL_INITIAL_PITCH` 
+- `GIMBAL_INITIAL_YAW`

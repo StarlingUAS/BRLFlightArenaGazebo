@@ -1,18 +1,20 @@
 <?xml version='1.0'?>
 <sdf version="1.6" xmlns:xacro='http://ros.org/wiki/xacro'>
   <xacro:property name="ros_namespace" value="$(arg ros_namespace)"/>
-  <model name="iris_demo">
-    <link name="tripod">
+  <xacro:property name="height" value="$(arg height)"/>
+  <model name="gimbal_tripod">
+    <pose>0 0 ${height / 2} 0 0 0</pose>
+    <link name="base">
+
       <collision name="geom_1">
         <geometry>
-          <box><size>0.5 0.5 1.5 0 0 0</size></box>
+          <box><size>0.5 0.5 ${height} 0 0 0</size></box>
         </geometry>
       </collision>
 
-      <!-- Keep collision box, but dont show it -->
       <visual name="tripod">
         <geometry>
-          <box><size>0.5 0.5 1.5 0 0 0</size></box>
+          <box><size>0.5 0.5 ${height} 0 0 0</size></box>
         </geometry>
         <material>
         <uri>file://media/materials/scripts/gazebo.material</uri>
@@ -23,20 +25,13 @@
 
     <include>
       <uri>model://gimbal_small_2d</uri>
-      <pose>0 0 1.0 1.57 0 1.57</pose>
+      <pose relative_to="gimbal_mount">0 0 0.0 1.57 3.14 0.0</pose>
     </include>
 
-    <joint name="gimbal_mount" type="revolute">
-      <parent>tripod</parent>
+    <joint name="gimbal_mount" type="fixed">
+      <pose relative_to="base">0 0 ${height / 2} 0 0 0</pose>
+      <parent>base</parent>
       <child>gimbal_small_2d::base_link</child>
-      <axis>
-        <limit>
-          <lower>0</lower>
-          <upper>0</upper>
-        </limit>
-        <xyz>0 0 1</xyz>
-        <use_parent_model_frame>true</use_parent_model_frame>
-      </axis>
     </joint>
 
   </model>

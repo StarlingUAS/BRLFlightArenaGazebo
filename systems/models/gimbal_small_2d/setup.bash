@@ -11,7 +11,9 @@ xacro ${XACRO_PATH} \
     camera_name:=${CAMERA_NAME:-camera} \
     camera_height:=${CAMERA_HEIGHT:-480} \
     camera_width:=${CAMERA_WIDTH:-640} \
-    gimbal_initial_angle:=${GIMBAL_INITIAL_ANGLE:-0.785} \
+    camera_rotation:=${CAMERA_ROTATION:-3.14159} \
+    gimbal_initial_pitch:=${GIMBAL_INITIAL_PITCH:-0.0} \
+    gimbal_initial_yaw:=${GIMBAL_INITIAL_YAW:-0.0} \
     gimbal_meshes_directory:=${MESHES_PATH} \
     -o ${MODEL_PATH}
 
