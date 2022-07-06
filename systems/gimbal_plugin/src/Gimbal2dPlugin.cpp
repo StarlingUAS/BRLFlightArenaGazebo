@@ -96,6 +96,9 @@ public:
   /// Joint for tilting the gimbal
   gazebo::physics::JointPtr tiltJoint;
 
+  /// Joint for yawing the gimbal
+  gazebo::physics::JointPtr yawJoint;
+
    /// Pose Stamped Message of Command Orientation
   geometry_msgs::msg::Quaternion command;
 
@@ -148,9 +151,9 @@ void GimbalPlugin::Load(gazebo::physics::ModelPtr model, sdf::ElementPtr sdf)
   
   // Get Joint Details
   std::string jointName = "tilt_joint";
-  if (sdf->HasElement("joint"))
+  if (sdf->HasElement("pitch_joint"))
   {
-    jointName = sdf->Get<std::string>("joint");
+    jointName = sdf->Get<std::string>("pitch_joint");
   }
   impl_->tiltJoint = impl_->model->GetJoint(jointName);
   if (!impl_->tiltJoint)
@@ -160,6 +163,24 @@ void GimbalPlugin::Load(gazebo::physics::ModelPtr model, sdf::ElementPtr sdf)
     impl_->tiltJoint = impl_->model->GetJoint(scopedJointName);
   }
   if (!impl_->tiltJoint)
+  {
+    RCLCPP_ERROR(impl_->ros_node_->get_logger(), "Gimbal2dPlugin::Load ERROR! Can't get joint %s", jointName.c_str());
+  }
+
+  // Get Joint Details
+  jointName = "yaw_joint";
+  if (sdf->HasElement("yaw_joint"))
+  {
+    jointName = sdf->Get<std::string>("yaw_joint");
+  }
+  impl_->yawJoint = impl_->model->GetJoint(jointName);
+  if (!impl_->yawJoint)
+  {
+    std::string scopedJointName = model->GetScopedName() + "::" + jointName;
+    RCLCPP_WARN(impl_->ros_node_->get_logger(), "joint [%s] not found, trying again with scoped joint name [%s]", jointName.c_str(), scopedJointName.c_str());
+    impl_->yawJoint = impl_->model->GetJoint(scopedJointName);
+  }
+  if (!impl_->yawJoint)
   {
     RCLCPP_ERROR(impl_->ros_node_->get_logger(), "Gimbal2dPlugin::Load ERROR! Can't get joint %s", jointName.c_str());
   }
@@ -185,14 +206,14 @@ void GimbalPlugin::Load(gazebo::physics::ModelPtr model, sdf::ElementPtr sdf)
 
   // Gimbal state publisher
   impl_->pub = impl_->ros_node_->create_publisher<geometry_msgs::msg::Quaternion>(
-    "gimbal_tilt_status", qos.get_publisher_qos("grasping", rclcpp::QoS(1)));
+    "get_gimbal_orientaiton", qos.get_publisher_qos("grasping", rclcpp::QoS(1)));
   RCLCPP_INFO(
     impl_->ros_node_->get_logger(),
     "Advertise gimbal status on [%s]", impl_->pub->get_topic_name());
 
   // Gimbal subscription, callback simply sets the command
   impl_->sub = impl_->ros_node_->create_subscription<geometry_msgs::msg::Quaternion>(
-    "gimbal_orientation", 10,
+    "set_gimbal_orientation", 10,
     [this](const geometry_msgs::msg::Quaternion::SharedPtr msg){
       if(msg) {
         this->impl_->command = *msg;
@@ -203,7 +224,7 @@ void GimbalPlugin::Load(gazebo::physics::ModelPtr model, sdf::ElementPtr sdf)
   );
   RCLCPP_INFO(
     impl_->ros_node_->get_logger(),
-    "Receiving gimbal pose2d theta cmd on [%s]", impl_->sub->get_topic_name()); 
+    "Receiving gimbal orientation quaternions on [%s]", impl_->sub->get_topic_name()); 
 }
 
 void GimbalPlugin::OnUpdate()
@@ -215,7 +236,7 @@ void GimbalPlugin::OnUpdate()
 
   // Get Joint Angles
   double pitch = impl_->tiltJoint->Position(0);
-  double yaw = 0;
+  double yaw = impl_->yawJoint->Position(0);
   double roll = 0;
   impl_->orientation = RPYToQuat(yaw, pitch, roll);
 
@@ -227,11 +248,20 @@ void GimbalPlugin::OnUpdate()
   }
   else if (time > impl_->lastUpdateTime)
   { 
-    // Move Pitch
+    // Get Time Delta
     double dt = (impl_->lastUpdateTime - time).Double();
-    double error = pitch - QuatGetPitch(impl_->command);
-    double force = impl_->pid_pitch.Update(error, dt);
-    impl_->tiltJoint->SetForce(0, force);
+
+    // Move Pitch
+    double pitch_error = pitch - QuatGetPitch(impl_->command);
+    double pitch_force = impl_->pid_pitch.Update(pitch_error, dt);
+    impl_->tiltJoint->SetForce(0, pitch_force);
+
+    // Move Yaw
+    double yaw_error = yaw - QuatGetYaw(impl_->command);
+    double yaw_force = impl_->pid_yaw.Update(yaw_error, dt);
+    impl_->yawJoint->SetForce(0, yaw_force);
+
+    // Set Update
     impl_->lastUpdateTime = time;
   }
 
