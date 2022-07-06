@@ -11,7 +11,7 @@ PORT?=-p 8080:8080
 all: flightarena
 
 flightarena:
-	$(BAKE) $(CONTAINERNAME)
+	$(BAKE) $(CONTAINERNAME) --no-cache
 
 local-build-push:
 	docker buildx bake --builder mybuilder -f $(BAKE_SCRIPT) --push $(CONTAINERNAME)
