@@ -24,6 +24,7 @@
 
 #include <geometry_msgs/msg/pose2_d.hpp>
 #include <geometry_msgs/msg/quaternion.hpp>
+#include <geometry_msgs/msg/vector3.hpp>
 #include <std_msgs/msg/float32.hpp>
 
 #include <memory>
@@ -89,6 +90,9 @@ public:
 
   /// Subscriber to the gimbal command topic
   rclcpp::Subscription<geometry_msgs::msg::Quaternion>::SharedPtr sub;
+
+  /// Subscriber to the pid command topic
+  rclcpp::Subscription<geometry_msgs::msg::Vector3>::SharedPtr pid_sub;
 
   /// Parent model of this plugin
   gazebo::physics::ModelPtr model;
@@ -222,6 +226,18 @@ void GimbalPlugin::Load(gazebo::physics::ModelPtr model, sdf::ElementPtr sdf)
       }
     }
   );
+
+    // Gimbal subscription, callback simply sets the command
+  impl_->pid_sub = impl_->ros_node_->create_subscription<geometry_msgs::msg::Vector3>(
+    "set_gimbal_pitch_pid", 10,
+    [this](const geometry_msgs::msg::Vector3::SharedPtr msg){
+      this->impl_->pid_pitch.SetPGain(msg->x);
+      this->impl_->pid_pitch.SetDGain(msg->y);
+      this->impl_->pid_pitch.SetIGain(msg->z);
+    }
+  );
+
+  impl
   RCLCPP_INFO(
     impl_->ros_node_->get_logger(),
     "Receiving gimbal orientation quaternions on [%s]", impl_->sub->get_topic_name()); 
