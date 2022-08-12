@@ -3,6 +3,7 @@ import time
 import numpy as np
 from functools import partial
 import os
+from multiprocessing import Lock
 
 import rclpy
 from rclpy.node import Node
@@ -44,45 +45,67 @@ class Monitor(Node):
         self.gazebo_model_state_sub = self.create_subscription(ModelStates, '/model_states',
                 lambda msg: self.pose_rate_limiter.call(lambda: self.model_states_cb(msg)), 10)
 
+        self.current_states_lookup_timer = self.create_timer(10.0, self.update_current_topics_cb)
+
+        self.current_topics = {}
+
+        self.last_model_states_msg = None
+        self.entity_topic_map = {}
+        self.valid_entities = {}
+
+        self.lock = Lock()
+
         self.get_logger().info("Motion Tracker Initialised")
 
-    def model_states_cb(self, msg):
-        # https://github.com/ros-simulation/gazebo_ros_pkgs/blob/noetic-devel/gazebo_msgs/msg/ModelStates.msg
-        stamp = self.get_clock().now()
+    def update_current_topics_cb(self):
+        self.current_topics = self.__get_current_vehicle_namespaces()
+
         model_prefixes = self.get_parameter('model_prefixes').value.split(' ')
 
+        if self.last_model_states_msg is None:
+            return 
+
         # Entity names are all <prefix>_<sys_id>
-        valid_entities = {}
+
+        self.lock.acquire()
+        self.valid_entities = {}
         target_entity = {}
-        for idx, n in enumerate(msg.name):
+        for idx, n in enumerate(self.last_model_states_msg.name):
             if any([p in n for p in model_prefixes]):
                 # print(f"Found {n} in {model_prefixes}")
                 target = int(n.split('_')[1])
                 if target in target_entity:
                     self.get_logger().warn(f"Entity {n} target id {target} is not unique, already collected: {target_entity}")
                 else:
-                    valid_entities[n] = idx
+                    self.valid_entities[n] = idx
                     target_entity[target] = n
 
         # Find mapping between entity name and ros2 vehicle namespace
-        entity_topic_map = {}
-        for vname in self.__get_current_vehicle_namespaces():
+        self.entity_topic_map = {}
+        for vname in self.current_topics:
             id = int(vname.split('_')[1])
             if id in target_entity:
-                entity_topic_map[vname] = target_entity[id]
+                topic = f'/{vname}/{self.pose_topic}'
+                self.entity_topic_map[vname] = (target_entity[id], self.create_publisher(PoseStamped, topic, 10))
             else:
                 self.get_logger().warn(f"Vehicle {vname} with id {id} has no corresponding entity: {target_entity}")
+        self.lock.release()
 
-        # self.get_logger().info(f'entity_topic_map: {entity_topic_map}')
-        for vehicle_name, entity_name in entity_topic_map.items():
+    def model_states_cb(self, msg):
+        # https://github.com/ros-simulation/gazebo_ros_pkgs/blob/noetic-devel/gazebo_msgs/msg/ModelStates.msg
+        stamp = self.get_clock().now()
+
+        self.last_model_states_msg = msg
+
+        self.lock.acquire()
+        for vehicle_name, (entity_name, pose_pub) in self.entity_topic_map.items():
             pmsg = PoseStamped()
             pmsg.header.stamp = stamp.to_msg()
             pmsg.header.frame_id = self.frame_id
-            pmsg.pose = msg.pose[valid_entities[entity_name]]
-
-            topic = f'/{vehicle_name}/{self.pose_topic}'
-            pose_pub = self.create_publisher(PoseStamped, topic, 10)
+            pmsg.pose = msg.pose[self.valid_entities[entity_name]]
             pose_pub.publish(pmsg)
+
+        self.lock.release()
 
             # self.get_logger().info(f'Pose sent from {entity_name} to {vehicle_name} on {topic}')
 
